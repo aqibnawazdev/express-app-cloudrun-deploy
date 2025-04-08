@@ -4,14 +4,14 @@ FROM node:22
 WORKDIR /app
 
 # Install app dependencies
-COPY Package*.json ./
-RUN npm install 
+COPY package*.json ./
+RUN npm install
 
 # Bundle app source
 COPY . .
 
-# Expose port
+# Ensure the PORT environment variable is properly used
 EXPOSE 8080
 
-# Start the app
-CMD [ "npm", "start" ]
+# Start the server
+CMD ["npm", "start"]
