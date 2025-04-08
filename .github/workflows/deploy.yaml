@@ -1,0 +1,44 @@
+name: Build and Deploy to cloud run
+
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v2
+            - name: Authenticate with google cloud
+              uses: google-github-actions/auth@v1
+              with:
+                credentials_json: ${{secrets.GC_PROJECT_SA_KEY}}
+
+            - name: Set up Google cloud SKD
+              uses: google-github-actions/setup-gcloud@v1
+              with:
+                project_id: ${{secrets.GC_PROJECT_ID}}
+
+            - name: Configure docker to use gcloud as credentials helper
+              run: |
+                gcloud auth configure-docker ${{ secrets.GC_LOCATION }}-docker.pkg.dev
+            
+            - name: Build and Push Docker image
+              run: | 
+                IMAGE_URI="${{ secrets.GC_LOCATION }}-docker.pkg.dev/${{ secrets.GC_PROJECT_ID }}/${{ secrets.GC_REPOSITORY_NAME }}/express-api:latest"
+                echo "Building Docker image: $IMAGE_URI"
+                docker build -t "$IMAGE_URI" .
+                docker push "$IMAGE_URI"
+
+            - name: Deploy to Cloud Run
+              run: |
+                  gcloud run deploy express-api-cloudrun \
+                    --image "${{ secrets.GC_LOCATION }}-docker.pkg.dev/${{ secrets.GC_PROJECT_ID }}/${{ secrets.GC_REPOSITORY_NAME }}/my-github-action:latest" \
+                    --platform managed \
+                    --region ${{ secrets.GC_LOCATION }} \
+                    --port 8080 \
+                    --project ${{ secrets.GC_PROJECT_ID }} \
+                    --service-account ${{ secrets.GC_PROJECT_SA_NAME }} \
+                    --allow-unauthenticated
