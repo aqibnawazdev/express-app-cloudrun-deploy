@@ -35,7 +35,7 @@ jobs:
             - name: Deploy to Cloud Run
               run: |
                   gcloud run deploy express-api-cloudrun \
-                    --image "${{ secrets.GC_LOCATION }}-docker.pkg.dev/${{ secrets.GC_PROJECT_ID }}/${{ secrets.GC_REPOSITORY_NAME }}/my-github-action:latest" \
+                    --image "${{ secrets.GC_LOCATION }}-docker.pkg.dev/${{ secrets.GC_PROJECT_ID }}/${{ secrets.GC_REPOSITORY_NAME }}/express-api:latest" \
                     --platform managed \
                     --region ${{ secrets.GC_LOCATION }} \
                     --port 8080 \
